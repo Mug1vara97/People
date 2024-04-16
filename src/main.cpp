@@ -245,6 +245,7 @@ public:
         }
     }
 };
+
 class Database {
 private:
     pqxx::connection connection;
@@ -257,13 +258,12 @@ public:
 
         pqxx::result result = txn.exec(
             "INSERT INTO individuals (age, relation_age, lifetime, gender, pregnancy_age, children_count) VALUES (" +
-txn.quote(individual->Age) + ", " +
-txn.quote(individual->RelationAge) + ", " +
-txn.quote(individual->LifeTime) + ", " +
-txn.quote(dynamic_cast<Female*>(individual) != nullptr ? "Female" : "Male") + ", " +
-((dynamic_cast<Female*>(individual) != nullptr) ? txn.quote(dynamic_cast<Female*>(individual)->PregnancyAge) : "NULL") + ", " +
-((dynamic_cast<Female*>(individual) != nullptr) ? txn.quote(dynamic_cast<Female*>(individual)->ChildrenCount) : "NULL") + ")"
-
+            txn.quote(individual->Age) + ", " +
+            txn.quote(individual->RelationAge) + ", " +
+            txn.quote(individual->LifeTime) + ", " +
+            txn.quote(dynamic_cast<Female*>(individual) != nullptr ? "Female" : "Male") + ", " +
+            ((dynamic_cast<Female*>(individual) != nullptr) ? txn.quote(dynamic_cast<Female*>(individual)->PregnancyAge) : "NULL") + ", " +
+            ((dynamic_cast<Female*>(individual) != nullptr) ? txn.quote(dynamic_cast<Female*>(individual)->ChildrenCount) : "NULL") + ")"
         );
 
         txn.commit();
@@ -276,26 +276,27 @@ txn.quote(dynamic_cast<Female*>(individual) != nullptr ? "Female" : "Male") + ",
 
         pqxx::result result = txn.exec("SELECT * FROM individuals");
 
-for (const auto& row : result) {
-    int age = row["age"].as<int>();
-    int relationAge = row["relation_age"].as<int>();
-    int lifeTime = row["lifetime"].as<int>();
+        for (const auto& row : result) {
+            int age = row["age"].as<int>();
+            int relationAge = row["relation_age"].as<int>();
+            int lifeTime = row["lifetime"].as<int>();
 
-    if (row["gender"].as<std::string>() == "Male") {
-        population.push_back(new Male(age));
-    } else {
-        population.push_back(new Female(age));
-        dynamic_cast<Female*>(population.back())->PregnancyAge = row["pregnancy_age"].as<double>();
-        dynamic_cast<Female*>(population.back())->ChildrenCount = row["children_count"].as<double>();
-    }
+            if (row["gender"].as<std::string>() == "Male") {
+                population.push_back(new Male(age));
+            } else {
+                population.push_back(new Female(age));
+                dynamic_cast<Female*>(population.back())->PregnancyAge = row["pregnancy_age"].as<double>();
+                dynamic_cast<Female*>(population.back())->ChildrenCount = row["children_count"].as<double>();
+            }
 
-    population.back()->RelationAge = relationAge;
-    population.back()->LifeTime = lifeTime;
-}
+            population.back()->RelationAge = relationAge;
+            population.back()->LifeTime = lifeTime;
+        }
 
         return population;
     }
 };
+
 int main() {
 
     std::string dbname = "Test";
